@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="##背景新接手的项目是打算采用Gralde来混淆打包的，可是之前只是耳闻Android Stduio采用Gradle来构建APP，完全没有实际操作过，所以这段时间也是抓紧学习了一下，开发也从Intellij迁移到了Studio上来了，Gradle还是相当强大和犀利的，下面来总结下这段时间的心得。 简单介绍下知识背景，在去年的Google I/O上Android Team发布了全新的开发工具Andr">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Starting Android Build With Gradle">
+<meta property="og:url" content="http://www.zhitops.com/2014/09/28/starting-android-build-with-gradle/index.html">
+<meta property="og:site_name" content="知道不死">
+<meta property="og:description" content="##背景新接手的项目是打算采用Gralde来混淆打包的，可是之前只是耳闻Android Stduio采用Gradle来构建APP，完全没有实际操作过，所以这段时间也是抓紧学习了一下，开发也从Intellij迁移到了Studio上来了，Gradle还是相当强大和犀利的，下面来总结下这段时间的心得。 简单介绍下知识背景，在去年的Google I/O上Android Team发布了全新的开发工具Andr">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://www.zhitops.com/blog_images/2014-09-28-starting-android-build-with-gradle/gradle_v_info.png">
+<meta property="og:image" content="http://www.zhitops.com/blog_images/2014-09-28-starting-android-build-with-gradle/project_dir_example.jpg">
+<meta property="og:image" content="http://www.zhitops.com/blog_images/2014-09-28-starting-android-build-with-gradle/app_dir_example.png">
+<meta property="og:image" content="http://www.zhitops.com/blog_images/2014-09-28-starting-android-build-with-gradle/gradle_clean.png">
+<meta property="og:updated_time" content="2018-07-27T03:57:27.363Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Starting Android Build With Gradle">
+<meta name="twitter:description" content="##背景新接手的项目是打算采用Gralde来混淆打包的，可是之前只是耳闻Android Stduio采用Gradle来构建APP，完全没有实际操作过，所以这段时间也是抓紧学习了一下，开发也从Intellij迁移到了Studio上来了，Gradle还是相当强大和犀利的，下面来总结下这段时间的心得。 简单介绍下知识背景，在去年的Google I/O上Android Team发布了全新的开发工具Andr">
+<meta name="twitter:image" content="http://www.zhitops.com/blog_images/2014-09-28-starting-android-build-with-gradle/gradle_v_info.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.zhitops.com/2014/09/28/starting-android-build-with-gradle/">
+
+
+
+
+
+  <title>Starting Android Build With Gradle | 知道不死</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">知道不死</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.zhitops.com/2014/09/28/starting-android-build-with-gradle/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Hito">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="知道不死">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Starting Android Build With Gradle</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2014-09-28T22:09:14+08:00">
+                2014-09-28
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/dev/" itemprop="url" rel="index">
+                    <span itemprop="name">dev</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>##背景<br>新接手的项目是打算采用Gralde来混淆打包的，可是之前只是耳闻Android Stduio采用Gradle来构建APP，完全没有实际操作过，所以这段时间也是抓紧学习了一下，开发也从Intellij迁移到了Studio上来了，Gradle还是相当强大和犀利的，下面来总结下这段时间的心得。</p>
+<p>简单介绍下知识背景，在去年的Google I/O上Android Team发布了全新的开发工具Android Stuido和新的构建系统Gradle，一时间引起开发者极大的关注。Studio基于大名鼎鼎的JAVA集成开发环境Intellij IDEA，出自捷克公司JetBrains。</p>
+<p>##介绍Gradle<br>对于Intellij如果作为Android Developer的你还没有使用过，我只想告诉你自从Eclipse切换过来后我就再也不想回去了，媲美Xcode的代码提示、得心应手的快捷键、逼格满满的Darcula主题、一目了然的模块依赖配置等等。而Android Studio对于Intellij所有的优点全部囊括在内，现在的Studio也完全甩掉了之前被人诟病的经常crash的不稳定包袱，从我近一个月的使用情况来看，所以拥抱变化吧少年，如果你已经看到这篇博文。</p>
+<p>下面再来说说Gradle，Gradle以动态语言Groovy为基础，是一种开发者用来管理模块依赖关系和能够轻松自定义构建逻辑的高级构建系统。可能你还了解Ant和Maven，Gradle是一种比他们更加强大的构建工具，同时其兼容Maven且配置简单。Android集成了Gradle构建系统且默认采用其来管理项目，这种编译打包方式的优点至少如下：</p>
+<pre><code>* 能够自定义配置和扩展构建过程
+* 一旦写好配置文件，能够用一个工程构建出各个渠道包，你需要的只是泡杯咖啡静静等待而已
+* 更方便的复用Library Module，依赖关系管理更加方便清晰
+* 你还可以用命令行哦，和IDE使用同一个构建系统
+</code></pre><a id="more"></a>
+<p>##安装Gradle<br>第一次运行的话，可以选择Android Studio联网安装，可是国内的网络你懂的，所以还是乖乖去<a href="http://www.gradle.org" target="_blank" rel="noopener">Gradle官网</a>下载然后本地配置吧。下载解压后将其添加到path中，然后gradle -v命令一下得到和下面类似的信息，然后就可以打开Studio指定Gradle至此目录了，配置也就ok了。</p>
+<p><img src="/blog_images/2014-09-28-starting-android-build-with-gradle/gradle_v_info.png" alt="gradle_v_info"></p>
+<p>##配置Gradle<br>下面以我自己正在开发的一个小工程为例，介绍下Gradle构建工程的配置文件，工程的目录结构如下图所示，</p>
+<p><img src="/blog_images/2014-09-28-starting-android-build-with-gradle/project_dir_example.jpg" alt="project_dir_example"></p>
+<p>下面将主要的目录文件做下说明：</p>
+<ul>
+<li>工程由两个模块app和volley组成，app是application类型，以library类型的volley模块作为library；</li>
+<li>build.gradle是整个工程的配置文件如截图右侧所示，如无需求基本不需要改动，buildscript节点<br>声明工程使用jcenter管理远程依赖关系，以及使用Gradle构建的版本；</li>
+<li>settings.gradle内容如下，定义工程内包含的模块；<ul>
+<li>include ‘:app’, ‘volley’</li>
+</ul>
+</li>
+<li>local.properties定义本地Android SDK存放的位置；</li>
+<li>.idea目录是Studio管理整个工程的配置文件所在，比如依赖关系、编码格式、版本控制等等。</li>
+</ul>
+<p>再来介绍下每个Module，具体到每个Module的目录结构和Eclipse、Intellij创建的项目也稍有不同。以app为例，</p>
+<p><img src="/blog_images/2014-09-28-starting-android-build-with-gradle/app_dir_example.png" alt="app_dir_example"></p>
+<ul>
+<li>build为app构建的输出文件目录所在；</li>
+<li>libs存放着第三方的library；</li>
+<li><p>src存放着整个module的源码，包括资源文件、代码、manifest文件、打release包所需的扰码文件，还有下面的重头戏——该module的Gradle配置文件，内容如下：</p>
+<pre><code>apply plugin: &apos;com.android.application&apos;
+
+android {
+    compileSdkVersion 19
+    buildToolsVersion &apos;19.1.0&apos;
+
+      defaultConfig {
+          applicationId &quot;com.zhitops.yuanwei&quot;
+          minSdkVersion 15
+          targetSdkVersion 19
+          versionCode 1
+          versionName &quot;1.0&quot;
+      }
+      buildTypes {
+          release {
+              runProguard false
+              proguardFiles getDefaultProguardFile(&apos;proguard-android.txt&apos;), &apos;proguard-rules.pro&apos;
+          }
+      }
+}
+</code></pre><p>   dependencies {</p>
+<pre><code>compile fileTree(dir: &apos;libs&apos;, include: [&apos;*.jar&apos;])
+compile project(&apos;:volley&apos;)
+</code></pre><p>   }</p>
+</li>
+</ul>
+<p>这是一个最基本的配置文件了，简单解释下新的东西，</p>
+<ul>
+<li>apply plugin节点的’com.android.application’定义此module的类型；</li>
+<li>android节点下，defaultConfig定义了本module的id即包名，最小支持sdk的版本，目标sdk版本，版本号等，把原来由manifest管理的一些配置统一到Gradle的配置文件管理；</li>
+<li>dependencies节点定义本module所有的依赖关系，第一行直接将次module的libs目录下的所有library添加到其依赖关系中来，第二行代码声明其依赖另一个名为volley的module作为其library，很简单吧。</li>
+</ul>
+<p>volley模块的目录层级和app大同小异，就不做赘述了。</p>
+<p>##构建Gradle<br>其实用gradle来编译运行一个工程很简单，直接cd到当前工程路径，然后gradle clean来下载相关的依赖包和对环境初始化，得到下面类似的”BUILD SUCCESSFUL”提示就初始化成功了，</p>
+<p><img src="/blog_images/2014-09-28-starting-android-build-with-gradle/gradle_clean.png" alt="gradle_clean"><br>然后一行”gradle build”就开始了整个工程的app构建之旅了，提示信息略长就不再截屏展示了。<br>Gradle基本的使用介绍就到此结束了，如果只有这些Gradle当然还不能把Ant、Maven比下去，高级应用来了。</p>
+<p>##高级Gradle<br>说到高级，Gradle必然有它先进之处，带签名扰过码的release包、各个平台发行的渠道包，都可以通过一次性配置Gradle搞定，配置好后只需一行“gradle build”命令就可以泡杯咖啡思考人生坐等打包完成了～</p>
+<p>接着说如何用Gradle来打签名包，其实很简单在配置文件build.gradle中有一个buildTypes的节点用来配置构建时签名信息，一个singConfigs用来指定用到的签名文件，如下：</p>
+<pre><code>signingConfigs {
+    release {
+        storeFile file(&quot;yuanwei.jks&quot;)
+        storePassword &quot;yuanwei&quot;
+        keyAlias &quot;yuanwei_android&quot;
+        keyPassword &quot;yuanwei&quot;
+    }
+}
+
+buildTypes {
+    release {
+        signingConfig  signingConfigs.release
+        runProguard true
+        proguardFile  &apos;proguard-rules.pro&apos;
+    }
+}
+</code></pre><p>在其他平台打包过app的童鞋都能轻松看懂这些配置信息，只是换了种格式就不过多介绍了，没错将这样的配置信息放入你的构建系统中，就能自动打出带签名的app了，再也不用手动的export或者generate每次都去配置了，一次编写，终身管用～</p>
+<p>细心的童鞋也可能发现一个熟悉的proguardFile  ‘proguard-rules.pro’配置的踪影，用来扰码你的app。由于之前在公司很少接触到打包的工作，扰码更是少之又少，最近换工作自己单独负责一个项目，每个步骤都要自己做在扰码时还是碰到了一些坑的，后面找个时间在总结下proguard～</p>
+<p>回归主题，接着看用Gradle来构建各个渠道包，其实依旧很简单，只需要在你的build.gradle增加下面的配置代码即可：</p>
+<pre><code>productFlavors {
+    store360{
+         applicationId=packageNameProperties
+    }
+    wandoujia{
+         applicationId=packageNameProperties
+    }
+    QQ{
+        applicationId=packageNameProperties
+    }
+    BaiDu{
+        applicationId=packageNameProperties
+    }
+    xiaomi{
+        applicationId=packageNameProperties
+    }
+}
+</code></pre><p>productFlavors节点用来配置渠道信息，上面罗列了几个国内的主要应用渠道，现在一些应用会在不同的渠道放不同包名的同一个app，感觉packageNameProperties这个配置就是为此需求量身定做的，替换成相应的报名即可。就是这么简单，渠道包的配置也完成了，build的时间个能有点长，且在此期间电脑会卡，所以去泡杯咖啡休息下吧～</p>
+<p>打包完成后，你就会发现在工程的build/outputs/apk<br>目录下已经生成了各个渠道包了，我这篇关于Gradle的介绍也接近尾声了～</p>
+<p>##总结<br>相信有耐心看完这些，你已经对Android Studio这套新的构建系统有了初步的认识，而我的这篇博文起到了一些抛砖引玉的作用也就足够了，实践出真知，真正使用的过程中才能体会到其中的强大，下面是我学习总结过程中参考到的一些资料，似乎都需要翻墙，不过毕竟是官方说明很权威很透彻～</p>
+<p><a href="http://developer.android.com/sdk/installing/studio-build.html" target="_blank" rel="noopener">Developer Android Stuido-Build官方介绍</a></p>
+<p><a href="http://tools.android.com/tech-docs/new-build-system/user-guide" target="_blank" rel="noopener">Android Gradle Plugin用户指南</a></p>
+<p>Google I/O 2013上的两个视频：</p>
+<p><a href="https://www.youtube.com/watch?v=LCJAgPkpmR0" target="_blank" rel="noopener">The New Android SDK Build System</a></p>
+<p><a href="https://www.youtube.com/watch?v=lmv1dTnhLH4" target="_blank" rel="noopener">What’s New in Android Developer Tools</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2014/11/29/some-tips-of-optimizing-java-program/" rel="prev" title="Some Tips Of Optimizing Java Program">
+                Some Tips Of Optimizing Java Program <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Hito</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">分类</span>
+                
+              </div>
+            
+
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Hito</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

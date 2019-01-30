@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="在应用开发和优化的过程中一个很常见的场景是，需要查看一下APP的内存使用情况，下面来总结一些经常用到的查看方法。 APP的最大内存限制一条命令即可查看手机里单个APP占用内存的最大限制，有图有真相。 这个96M是单个APP的限制最大内存，如果不想在dalvik heap达到heapgrowthlimit限制的时候出现OOM，可以在Manifest中的application标签中声明android:">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Check my android app memory use">
+<meta property="og:url" content="http://www.zhitops.com/2016/01/08/check-my-android-app-memory-use/index.html">
+<meta property="og:site_name" content="知道不死">
+<meta property="og:description" content="在应用开发和优化的过程中一个很常见的场景是，需要查看一下APP的内存使用情况，下面来总结一些经常用到的查看方法。 APP的最大内存限制一条命令即可查看手机里单个APP占用内存的最大限制，有图有真相。 这个96M是单个APP的限制最大内存，如果不想在dalvik heap达到heapgrowthlimit限制的时候出现OOM，可以在Manifest中的application标签中声明android:">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://www.zhitops.com/blog_images/2016-01-08-check-my-android-app-memory-use/single_app_max_memory.png">
+<meta property="og:image" content="http://www.zhitops.com/blog_images/2016-01-08-check-my-android-app-memory-use/app_memory_detail.png">
+<meta property="og:image" content="http://www.zhitops.com/blog_images/2016-01-08-check-my-android-app-memory-use/memory_part_info.png">
+<meta property="og:image" content="http://www.zhitops.com/blog_images/2016-01-08-check-my-android-app-memory-use/ram_capture.png">
+<meta property="og:image" content="http://www.zhitops.com/blog_images/2016-01-08-check-my-android-app-memory-use/use_memory_top10.png">
+<meta property="og:updated_time" content="2018-08-09T09:17:59.373Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Check my android app memory use">
+<meta name="twitter:description" content="在应用开发和优化的过程中一个很常见的场景是，需要查看一下APP的内存使用情况，下面来总结一些经常用到的查看方法。 APP的最大内存限制一条命令即可查看手机里单个APP占用内存的最大限制，有图有真相。 这个96M是单个APP的限制最大内存，如果不想在dalvik heap达到heapgrowthlimit限制的时候出现OOM，可以在Manifest中的application标签中声明android:">
+<meta name="twitter:image" content="http://www.zhitops.com/blog_images/2016-01-08-check-my-android-app-memory-use/single_app_max_memory.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.zhitops.com/2016/01/08/check-my-android-app-memory-use/">
+
+
+
+
+
+  <title>Check my android app memory use | 知道不死</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">知道不死</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.zhitops.com/2016/01/08/check-my-android-app-memory-use/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Hito">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="知道不死">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Check my android app memory use</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-01-08T11:04:26+08:00">
+                2016-01-08
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/dev/" itemprop="url" rel="index">
+                    <span itemprop="name">dev</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>在应用开发和优化的过程中一个很常见的场景是，需要查看一下APP的内存使用情况，下面来总结一些经常用到的查看方法。</p>
+<h4 id="APP的最大内存限制"><a href="#APP的最大内存限制" class="headerlink" title="APP的最大内存限制"></a>APP的最大内存限制</h4><p>一条命令即可查看手机里单个APP占用内存的最大限制，有图有真相。<br><br><img src="/blog_images/2016-01-08-check-my-android-app-memory-use/single_app_max_memory.png" alt="查看单个APP最大内存限制"> <br><br>这个96M是单个APP的限制最大内存，如果不想在dalvik heap达到heapgrowthlimit限制的时候出现OOM，可以在Manifest中的application标签中声明android:largeHeap=“true”，声明后应用dalvik heap达到heapsize的时候才会出现OOM。<br><br>PS：设备不一样,单个APP最大内存限制也可能不一样。现在大多数手机 的android程序内存一般限制在96M以上甚至更高，也可能更低。</p>
+<h4 id="查看APP的详细内存信息"><a href="#查看APP的详细内存信息" class="headerlink" title="查看APP的详细内存信息"></a>查看APP的详细内存信息</h4><p>同样是一条命令搞定。<br><br><img src="/blog_images/2016-01-08-check-my-android-app-memory-use/app_memory_detail.png" alt="查看单个APP最大内存限制"> <br><br>前面所说的单个APP最大内存限制，正是对Dalvik Heap的Heap Size限制，超过即会发生OOM。</p>
+<a id="more"></a>
+<h4 id="更直观的内存细分工具"><a href="#更直观的内存细分工具" class="headerlink" title="更直观的内存细分工具"></a>更直观的内存细分工具</h4><p>Linux也提供了一个系统工具来查看进程所占用内存的细分情况，在Android中当然可以利用其来查看内存，灰常给力使用如下。<br><br><img src="/blog_images/2016-01-08-check-my-android-app-memory-use/memory_part_info.png" alt="查看单个APP最大内存限制"> <br><br>简单的说明:<br><br>VSS – Virtual Set Size 虚拟耗用内存（包含共享库占用的内存）<br><br>RSS – Resident Set Size 实际使用物理内存（包含共享库占用的内存）<br><br>PSS – Proportional Set Size 实际使用的物理内存（比例分配共享库占用的内存）<br><br>USS – Unique Set Size 进程独自占用的物理内存（不包含共享库占用的内存）<br><br>一般来说内存占用大小有如下规律：VSS &gt;= RSS &gt;= PSS &gt;= USS.</p>
+<h4 id="APP内存划分"><a href="#APP内存划分" class="headerlink" title="APP内存划分"></a>APP内存划分</h4><p>android程序内存可以分为两部分：<br><br>Dalvik Heap，即Java堆内存，APP创建对象的所需内存是在这里面分配的； <br><br>Native Heap, 即Android Native Code中使用malloc分配出来的内存，这部分内存不受Java Object Heap的限制，可以自由使用，但是会受到系统限制。</p>
+<h4 id="发生OOM并不和RAM有直接关系"><a href="#发生OOM并不和RAM有直接关系" class="headerlink" title="发生OOM并不和RAM有直接关系"></a>发生OOM并不和RAM有直接关系</h4><p>程序发生OMM并不表示RAM不足，而是因为程序申请的java heap对象超过了dalvik vm heapgrowthlimit。也就是说，在RAM充足的情况下，也可能发生OOM。</p>
+<h4 id="查看RAM使用情况"><a href="#查看RAM使用情况" class="headerlink" title="查看RAM使用情况"></a>查看RAM使用情况</h4><p><img src="/blog_images/2016-01-08-check-my-android-app-memory-use/ram_capture.png" alt="查看单个APP最大内存限制"> <br><br>一些说明如下：<br><br>MemTotal：可以使用的RAM总和（小于实际RAM，操作系统预留了一部分）<br><br>MemFree：未使用的RAM <br><br>Cached：缓存（这个也是app可以申请到的内存）<br><br>HightTotal：RAM中地址高于860M的物理内存总和，只能被用户空间的程序使用 <br><br>HightFree：RAM中地址高于860M的未使用内存 <br><br>LowTotal：RAM中内核和用户空间程序都可以使用的内存总和（对于512M的RAM: lowTotal= MemTotal）<br><br>LowFree: RAM中内核和用户空间程序未使用的内存（对于512M的RAM: lowFree = MemFree）<br></p>
+<h4 id="查看占用内存前十的APP"><a href="#查看占用内存前十的APP" class="headerlink" title="查看占用内存前十的APP"></a>查看占用内存前十的APP</h4><p><img src="/blog_images/2016-01-08-check-my-android-app-memory-use/use_memory_top10.png" alt="查看单个APP最大内存限制"></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2014/11/29/some-tips-of-optimizing-java-program/" rel="next" title="Some Tips Of Optimizing Java Program">
+                <i class="fa fa-chevron-left"></i> Some Tips Of Optimizing Java Program
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/07/27/git-commend-memo/" rel="prev" title="Git Commend Memos">
+                Git Commend Memos <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Hito</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">分类</span>
+                
+              </div>
+            
+
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#APP的最大内存限制"><span class="nav-number">1.</span> <span class="nav-text">APP的最大内存限制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#查看APP的详细内存信息"><span class="nav-number">2.</span> <span class="nav-text">查看APP的详细内存信息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#更直观的内存细分工具"><span class="nav-number">3.</span> <span class="nav-text">更直观的内存细分工具</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#APP内存划分"><span class="nav-number">4.</span> <span class="nav-text">APP内存划分</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#发生OOM并不和RAM有直接关系"><span class="nav-number">5.</span> <span class="nav-text">发生OOM并不和RAM有直接关系</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#查看RAM使用情况"><span class="nav-number">6.</span> <span class="nav-text">查看RAM使用情况</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#查看占用内存前十的APP"><span class="nav-number">7.</span> <span class="nav-text">查看占用内存前十的APP</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Hito</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
